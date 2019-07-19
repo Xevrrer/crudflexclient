@@ -1,10 +1,97 @@
 "use strict"
-const global_path = 'http://jackal-testing.pl/crudapi/';
+
+
+const unwanted_columns = ['id_product','deleted'];
+const global = {ignoreRow:[...unwanted_columns],path:'http://jackal-testing.pl/crudapi/'};
 
 const configApp = {
     maxRows: 6
 };
 
+
+
+class DOMcreator {
+    constructor(){
+		
+   // empty
+
+
+    }
+
+    create({type,className,text,parent,src,id}){
+	
+	if(typeof type == 'undefined'){throw 'Please insert type of element'};
+	
+	
+	const newElem = document.createElement(type);
+	
+	if(typeof className !== 'undefined'){
+		newElem.className = className;
+	}
+	
+	
+	if(typeof text !== 'undefined'){
+		newElem.textContent = text;
+	}
+	
+	if(typeof id !== 'undefined'){
+		newElem.id = id;
+	}
+	
+	if(typeof parent !== 'undefined'){
+		parent.appendChild(newElem);
+	}
+	
+	
+	if(typeof src !== 'undefined'){
+		newElem.src = `${src}`;
+	}
+	
+	
+	return newElem;
+}
+
+
+}
+
+function init_show_column(user){
+	
+	const app = document.getElementById('showtb');
+	
+	while (app.firstChild !== null) {
+        app.removeChild(app.firstChild);
+    }
+	
+	
+		global.ignoreRow.forEach((e)=>{
+		
+		if(unwanted_columns.includes(e)){
+			return;
+		}
+		
+		const creator = new DOMcreator;
+		
+		const item = creator.create({type:'div',className:'show-item',parent:app,text:`show ${e}`});
+		
+		item.addEventListener('click',()=>{
+			console.log('cc');
+			global.ignoreRow = global.ignoreRow.filter(el => el !== e);
+			
+			fetch_api({
+                        url: `${global.path}read.php`,
+                        data: {
+                            token: user.token
+                        },
+                        callback: (res) => {
+                            refreshTable(res, user);
+                        }
+                    });
+			
+		})
+		
+		
+	});
+}
 
 function fetch_api({
     url,
@@ -32,6 +119,7 @@ function fetch_api({
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
+
 
     const result = document.getElementById('result');
     const app = document.getElementById('app');
@@ -62,7 +150,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 
         fetch_api({
-            url: `${global_path}login.php`,
+            url: `${global.path}login.php`,
             data: {
                 login,
                 password
@@ -138,14 +226,17 @@ class User {
 function refreshTable(res, user) {
 
 
-
+	const Creator = new DOMcreator;
 
     const appTable = document.getElementById('table');
     const panel = document.getElementById('panel');
+	const lgBtn = document.getElementById('ds');
     const table = [];
 
+	lgBtn.style.display = 'flex';
     appTable.style.display = 'flex';
     setTimeout(() => {
+		lgBtn.style.opacity = '.6';
         appTable.style.opacity = '1';
     }, 100);
 
@@ -154,6 +245,8 @@ function refreshTable(res, user) {
         opacity: '1'
     });
 
+	init_show_column(user);
+	
 	// kasowanie wszystkich elementów z obiektu tablicy
     while (appTable.firstChild !== null) {
         appTable.removeChild(appTable.firstChild);
@@ -172,7 +265,7 @@ function refreshTable(res, user) {
         }
 
         fetch_api({
-            url: `${global_path}fieldupdate.php`,
+            url: `${global.path}fieldupdate.php`,
             data: changeData,
             callback: (res) => {
                 //console.log('here', res);
@@ -190,24 +283,23 @@ function refreshTable(res, user) {
     }
 
     //console.log(table);
-    const border = document.createElement('div');
-    border.className = 'border-extra';
-    appTable.appendChild(border);
+	
+	
+    const border = Creator.create({type:'div',className:'border-extra',parent:appTable});
+	const headers = Creator.create({type:'div',className:'row',parent:border});
 
-    const headers = document.createElement('div');
-    headers.className = 'row';
-    border.appendChild(headers);
+  
 
     let lastclass = 'header-d';
-
+	
     Object.keys(table[0]).forEach((e) => {
+		//console.log(global.ignoreRow)
 
-
-        if (e === 'id_product' || e === 'deleted') {
+        if (global.ignoreRow.includes(e)) {
             return;
         }
 
-        const el = document.createElement('div');
+        const el = Creator.create({type:'div'});
 
 
         if (lastclass === 'header-d') {
@@ -220,6 +312,27 @@ function refreshTable(res, user) {
 
 
         el.textContent = e;
+		
+		if(Object.keys(table[0]).length > global.ignoreRow.length+1){
+		const hideBtn = Creator.create({type:'div',className:'row-hide',parent:el,text:'Hide'});
+		
+		hideBtn.addEventListener('click',()=>{
+			
+			global.ignoreRow.push(e);
+			
+			fetch_api({
+                        url: `${global.path}read.php`,
+                        data: {
+                            token: user.token
+                        },
+                        callback: (res) => {
+                            refreshTable(res, user);
+                        }
+                    });
+			
+			
+		});
+		}
         headers.appendChild(el);
 
     });
@@ -228,20 +341,17 @@ function refreshTable(res, user) {
 
 
     table.forEach((item) => {
-
-        const row = document.createElement('div');
-        row.className = 'row';
-        border.appendChild(row);
+	
+        const row = Creator.create({type:'div',className:'row',parent:border});
 
         lastclass = 'item-d';
 
         const index = item['id_product'];
 
-
-        const delBtn = document.createElement('div');
-        delBtn.className = 'del-row';
-        delBtn.id = `${index}`;
-        delBtn.textContent = 'X';
+		
+		
+		
+        const delBtn = Creator.create({type:'div',className:'del-row',id:'${index}',text:'X'});
 
         if (user.admin && table.length > 1) {
             row.appendChild(delBtn);
@@ -252,7 +362,7 @@ function refreshTable(res, user) {
             const id = index;
 
             fetch_api({
-                url: `${global_path}rowdel.php`,
+                url: `${global.path}rowdel.php`,
                 data: {
                     token: user.token,
                     id: id
@@ -262,7 +372,7 @@ function refreshTable(res, user) {
                    // console.log(e);
 
                     fetch_api({
-                        url: `${global_path}read.php`,
+                        url: `${global.path}read.php`,
                         data: {
                             token: user.token
                         },
@@ -281,10 +391,10 @@ function refreshTable(res, user) {
 
         for (let key in item) {
 
-            if (key !== 'id_product' && key !== 'deleted') {
+            if (!global.ignoreRow.includes(key)) {
 
 
-                const el = document.createElement('input');
+                const el = Creator.create({type:'input'});;
 
                 if (lastclass === 'item-d') {
                     el.className = 'item';
@@ -304,25 +414,23 @@ function refreshTable(res, user) {
     });
 
 
-    const addRow = document.createElement('div');
-    addRow.className = 'row extra-row';
-    addRow.textContent = '+ Add row';
+    const addRow = Creator.create({type:'div',className:'row extra-row',text:'+ Add row'});
+	
     if (user.admin && table.length < configApp.maxRows) {
         appTable.appendChild(addRow);
     }
+	
     addRow.addEventListener('click', () => {
 
-
-
         fetch_api({
-            url: `${global_path}rowadd.php`,
+            url: `${global.path}rowadd.php`,
             data: {
                 token: user.token
             },
             callback: () => {
 
                 fetch_api({
-                    url: `${global_path}read.php`,
+                    url: `${global.path}read.php`,
                     data: {
                         token: user.token
                     },
@@ -351,6 +459,7 @@ function init(userData) {
 
         localStorage.clear();
         location.reload();
+		unlogBtn.style.opacity = '0';
 
     });
 
@@ -359,7 +468,7 @@ function init(userData) {
     refBtn.addEventListener('click', () => {
 
         fetch_api({
-            url: `${global_path}read.php`,
+            url: `${global.path}read.php`,
             data: {
                 token: user.token
             },

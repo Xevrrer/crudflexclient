@@ -61,6 +61,47 @@ align-items:center;
 flex-direction:column;
 }
 
+.show-item{
+display:flex;
+justify-content:center;
+align-items:center;
+text-align:center;
+
+user-select:none;
+cursor:pointer;
+border:dashed 1px #7bd4bd;
+border-top:none;
+
+margin:0px 10px;
+min-width:60px;
+height:50px;
+padding:0px 10px;
+
+opacity:.5;
+transform:translateY(-10px);
+transition:.3s;
+}
+
+.show-item:hover{
+opacity:.9;
+transform:translateY(0px);
+}
+
+.show-table{
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:row;
+position:fixed;
+min-height:50px;
+top:0;
+z-index:1;
+width:100vw;
+max-width:100%;
+
+color:white;
+}
+
 .app-table{
 display:none;
 justify-content:center;
@@ -76,6 +117,8 @@ opacity:0;
 }
 
 .border-extra{
+max-width:80vw;
+min-width:100px;
 border:1px white solid;
 animation:borderr 1s;
 z-index:3;
@@ -132,7 +175,7 @@ color:white;
 border:white 1px solid;
 border-top:none;
 
-display:flex;
+display:none;
 justify-content:center;
 align-items:center;
 
@@ -141,14 +184,18 @@ cursor:pointer;
 
 transition:.3s;
 transform:translateY(-10px);
-opacity:.8;
+opacity:0;
+z-index:30;
 }
 
 .logout:hover{
 	
 transform:translateY(-5px);	
-opacity:1;	
+opacity:1!important;	
 }
+
+
+
 
 .extra-row{
 color:white;
@@ -170,21 +217,48 @@ transform:translateY(0px);
 opacity:1;
 }
 
+.row-hide{
+width:80px;
+height:40px;
+
+position:absolute;
+top:-40px;
+left:10px;
+
+border-top:dashed #7a96c4 1px;
+	
+opacity:.5;
+transition:.3s;
+color:#7a96c4;
+font-size:15px;
+
+display:flex;
+justify-content:center;
+align-items:center;
+transform:translateY(0px);
+user-select:none;
+cursor:pointer;
+}
+
+.row-hide:hover{
+transform:translateY(-10px);
+opacity:.7;
+}
+
 .header{
+position:relative;
 display:flex;
 justify-content:center;
 align-items:center;
 
 width:100px;
 height:50px;
-
 color:white;
 background-color:#454545;
 font-size:17px;
 }
 
 .header-d{
-
 background-color:#4d453e;
 
 }
@@ -243,7 +317,8 @@ display:flex;
 justify-content:center;
 align-items:center;
 z-index:2;
-width:100px;
+max-width:100px;
+width:100%;
 height:40px;
 
 color:white;
@@ -263,4 +338,24 @@ background-color:#3b372e;
 
 .item-d:hover{
 background-color:#4f4a3e;
+}
+
+@media (max-width: 480px) {
+  .item {
+    font-size:11px;
+  }
+  
+  .header {
+    font-size:13px;
+  }
+  
+  .row-hide{
+width:40px;
+height:40px;
+
+top:-40px;
+left:10px;
+
+}
+
 }
